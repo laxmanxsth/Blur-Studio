@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLUR Studio - Premium Face Blur</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        /* Animated background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 1100px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 0 1px rgba(139, 92, 246, 0.3) inset;
+            animation: fadeInScale 0.8s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .header {
+            margin-bottom: 40px;
+            text-align: center;
+            animation: slideDown 0.8s ease-out 0.1s backwards;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 42px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .editor-area {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 40px;
+            margin-bottom: 30px;
+            animation: slideUp 0.8s ease-out 0.2s backwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .image-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .section-label {
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #cbd5e1;
+            opacity: 0.7;
+        }
+
+        #canvas {
+            border: 2px solid rgba(148, 163, 184, 0.2);
+            border-radius: 16px;
+            max-width: 100%;
+            height: auto;
+            cursor: crosshair;
+            background: linear-gradient(135deg, rgba(51, 65, 85, 0.3), rgba(30, 41, 59, 0.3));
+            display: block;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 10px 40px rgba(0, 0, 0, 0.3),
+                0 0 1px rgba(100, 200, 255, 0.2) inset;
+        }
+
+        #canvas:hover {
+            border-color: rgba(148, 163, 184, 0.4);
+            box-shadow: 
+                0 15px 50px rgba(100, 200, 255, 0.1),
+                0 0 1px rgba(100, 200, 255, 0.3) inset;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            animation: slideUp 0.8s ease-out 0.3s backwards;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .value-badge {
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'Syne', sans-serif;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, 
+                rgba(139, 92, 246, 0.3), 
+                rgba(139, 92, 246, 0.6));
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+            transition: all 0.2s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        button {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Syne', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+            pointer-events: none;
+        }
+
+        button:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            color: white;
+            grid-column: 1 / -1;
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(139, 92, 246, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(148, 163, 184, 0.1);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(148, 163, 184, 0.15);
+            border-color: rgba(148, 163, 184, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: translateY(-1px);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, 
+                rgba(139, 92, 246, 0.1), 
+                rgba(59, 130, 246, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-left: 3px solid #8b5cf6;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            color: #cbd5e1;
+            margin-bottom: 24px;
+            line-height: 1.6;
+            animation: slideUp 0.8s ease-out 0.4s backwards;
+        }
+
+        .blur-mode-toggle {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .blur-mode-btn {
+            flex: 1;
+            padding: 10px !important;
+            font-size: 12px !important;
+            background: rgba(148, 163, 184, 0.1) !important;
+            border: 1px solid rgba(148, 163, 184, 0.2) !important;
+            color: #94a3b8 !important;
+            transition: all 0.3s ease;
+        }
+
+        .blur-mode-btn.active {
+            background: linear-gradient(135deg, #8b5cf6, #a78bfa) !important;
+            border-color: #8b5cf6 !important;
+            color: white !important;
+        }
+
+        .loading-indicator {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 23, 42, 0.95);
+            padding: 32px;
+            border-radius: 16px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(139, 92, 246, 0.2);
+            border-top-color: #a78bfa;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-indicator p {
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        @media (max-width: 1024px) {
+            .editor-area {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .container {
+                padding: 32px;
+            }
+
+            h1 {
+                font-size: 32px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                border-radius: 16px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-primary {
+                grid-column: auto;
+            }
+        }
+
+        /* Custom scrollbar */
+        .container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .container::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.4);
+            border-radius: 4px;
+        }
+
+        .container::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-indicator" id="loadingIndicator">
+        <div class="spinner"></div>
+        <p>Applying advanced blur...</p>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>✨ BLUR STUDIO</h1>
+            <p class="subtitle">Professional Face Privacy Tool • Real-time Advanced Blur</p>
+        </div>
+
+        <div class="info-box">
+            💡 <strong>Premium Blur:</strong> Click & drag to paint smooth, professional blur on faces. Adjust intensity for cinematic effects. Real-time preview with advanced Gaussian algorithms.
+        </div>
+
+        <div class="editor-area">
+            <div class="image-section">
+                <div class="section-label">Preview Canvas</div>
+                <canvas id="canvas"></canvas>
+                <input type="file" id="imageInput" accept="image/*">
+                <button class="btn-primary" onclick="document.getElementById('imageInput').click()">
+                    ↑ UPLOAD IMAGE
+                </button>
+            </div>
+
+            <div class="controls">
+                <div>
+                    <div class="section-label">Blur Settings</div>
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Brush Size
+                        <span class="value-badge" id="brushSizeValue">40</span>
+                    </label>
+                    <input type="range" id="brushSize" min="15" max="250" value="40">
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Blur Strength
+                        <span class="value-badge" id="blurIntensityValue">20</span>
+                    </label>
+                    <input type="range" id="blurIntensity" min="1" max="80" value="20">
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Blur Radius
+                        <span class="value-badge" id="blurRadiusValue">12</span>
+                    </label>
+                    <input type="range" id="blurRadius" min="3" max="30" value="12">
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Smoothness
+                        <span class="value-badge" id="smoothnessValue">8</span>
+                    </label>
+                    <input type="range" id="smoothness" min="1" max="15" value="8">
+                </div>
+
+                <div>
+                    <div class="section-label" style="margin-top: 8px;">Blur Mode</div>
+                    <div class="blur-mode-toggle">
+                        <button class="blur-mode-btn active" onclick="setBlurMode('gaussian')">Gaussian</button>
+                        <button class="blur-mode-btn" onclick="setBlurMode('motion')">Motion</button>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="undoBlur()">↶ UNDO</button>
+                    <button class="btn-danger" onclick="clearCanvas()">✕ CLEAR</button>
+                </div>
+
+                <button class="btn-primary" onclick="downloadImage()">
+                    ⬇ DOWNLOAD BLURRED
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const imageInput = document.getElementById('imageInput');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        let originalImage = null;
+        let isDrawing = false;
+        let blurAreas = [];
+        let history = [];
+        let blurMode = 'gaussian';
+        let lastX = 0, lastY = 0;
+
+        // Control inputs
+        const brushSizeInput = document.getElementById('brushSize');
+        const blurIntensityInput = document.getElementById('blurIntensity');
+        const blurRadiusInput = document.getElementById('blurRadius');
+        const smoothnessInput = document.getElementById('smoothness');
+
+        // Update value badges
+        brushSizeInput.addEventListener('input', (e) => {
+            document.getElementById('brushSizeValue').textContent = e.target.value;
+        });
+
+        blurIntensityInput.addEventListener('input', (e) => {
+            document.getElementById('blurIntensityValue').textContent = e.target.value;
+            redrawCanvas();
+        });
+
+        blurRadiusInput.addEventListener('input', (e) => {
+            document.getElementById('blurRadiusValue').textContent = e.target.value;
+            redrawCanvas();
+        });
+
+        smoothnessInput.addEventListener('input', (e) => {
+            document.getElementById('smoothnessValue').textContent = e.target.value;
+        });
+
+        imageInput.addEventListener('change', handleImageUpload);
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch support
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    originalImage = img;
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    blurAreas = [];
+                    history = [];
+                    redrawCanvas();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.pageX) - rect.left;
+            const y = (e.clientY || e.pageY) - rect.top;
+            const scale = canvas.width / rect.width;
+            return { x: x * scale, y: y * scale };
+        }
+
+        function startDrawing(e) {
+            if (!originalImage) return;
+            isDrawing = true;
+            history.push(JSON.stringify(blurAreas));
+            const coords = getCanvasCoordinates(e);
+            lastX = coords.x;
+            lastY = coords.y;
+        }
+
+        function handleTouchStart(e) {
+            if (!originalImage) return;
+            isDrawing = true;
+            history.push(JSON.stringify(blurAreas));
+            const coords = getCanvasCoordinates(e.touches[0]);
+            lastX = coords.x;
+            lastY = coords.y;
+        }
+
+        function draw(e) {
+            if (!isDrawing || !originalImage) return;
+
+            const coords = getCanvasCoordinates(e);
+            const smoothness = parseInt(smoothnessInput.value);
+
+            // Create smooth line by interpolating points
+            const dx = coords.x - lastX;
+            const dy = coords.y - lastY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const steps = Math.max(Math.ceil(distance / smoothness), 1);
+
+            for (let i = 0; i <= steps; i++) {
+                const t = steps > 0 ? i / steps : 0;
+                const x = lastX + dx * t;
+                const y = lastY + dy * t;
+
+                blurAreas.push({
+                    x: x,
+                    y: y,
+                    radius: parseInt(brushSizeInput.value),
+                    intensity: parseInt(blurIntensityInput.value),
+                    blurRadius: parseInt(blurRadiusInput.value),
+                    mode: blurMode,
+                    timestamp: Date.now()
+                });
+            }
+
+            lastX = coords.x;
+            lastY = coords.y;
+            redrawCanvas();
+        }
+
+        function handleTouchMove(e) {
+            if (!isDrawing || !originalImage) return;
+            const coords = getCanvasCoordinates(e.touches[0]);
+            const smoothness = parseInt(smoothnessInput.value);
+
+            const dx = coords.x - lastX;
+            const dy = coords.y - lastY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const steps = Math.max(Math.ceil(distance / smoothness), 1);
+
+            for (let i = 0; i <= steps; i++) {
+                const t = steps > 0 ? i / steps : 0;
+                const x = lastX + dx * t;
+                const y = lastY + dy * t;
+
+                blurAreas.push({
+                    x: x,
+                    y: y,
+                    radius: parseInt(brushSizeInput.value),
+                    intensity: parseInt(blurIntensityInput.value),
+                    blurRadius: parseInt(blurRadiusInput.value),
+                    mode: blurMode,
+                    timestamp: Date.now()
+                });
+            }
+
+            lastX = coords.x;
+            lastY = coords.y;
+            redrawCanvas();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function setBlurMode(mode) {
+            blurMode = mode;
+            document.querySelectorAll('.blur-mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            redrawCanvas();
+        }
+
+        function gaussianBlur(imageData, centerX, centerY, radius, intensity, blurRadius) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+
+            const kernel = createGaussianKernel(blurRadius);
+            const kernelSize = blurRadius * 2 + 1;
+
+            for (let iteration = 0; iteration < intensity; iteration++) {
+                const newData = new Uint8ClampedArray(data);
+
+                for (let py = Math.max(0, centerY - radius); py < Math.min(height, centerY + radius); py++) {
+                    for (let px = Math.max(0, centerX - radius); px < Math.min(width, centerX + radius); px++) {
+                        const dist = Math.sqrt((px - centerX) ** 2 + (py - centerY) ** 2);
+                        if (dist > radius) continue;
+
+                        const idx = (py * width + px) * 4;
+                        let r = 0, g = 0, b = 0, a = 0, weight = 0;
+
+                        for (let ky = 0; ky < kernelSize; ky++) {
+                            for (let kx = 0; kx < kernelSize; kx++) {
+                                const nx = px + kx - blurRadius;
+                                const ny = py + ky - blurRadius;
+
+                                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                    const nidx = (ny * width + nx) * 4;
+                                    const kweight = kernel[ky * kernelSize + kx];
+
+                                    r += newData[nidx] * kweight;
+                                    g += newData[nidx + 1] * kweight;
+                                    b += newData[nidx + 2] * kweight;
+                                    a += newData[nidx + 3] * kweight;
+                                    weight += kweight;
+                                }
+                            }
+                        }
+
+                        if (weight > 0) {
+                            data[idx] = Math.round(r / weight);
+                            data[idx + 1] = Math.round(g / weight);
+                            data[idx + 2] = Math.round(b / weight);
+                            data[idx + 3] = Math.round(a / weight);
+                        }
+                    }
+                }
+            }
+        }
+
+        function createGaussianKernel(radius) {
+            const size = radius * 2 + 1;
+            const kernel = new Float32Array(size * size);
+            const sigma = radius / 2;
+            let sum = 0;
+
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const dx = x - radius;
+                    const dy = y - radius;
+                    const val = Math.exp(-(dx * dx + dy * dy) / (2 * sigma * sigma));
+                    kernel[y * size + x] = val;
+                    sum += val;
+                }
+            }
+
+            for (let i = 0; i < kernel.length; i++) {
+                kernel[i] /= sum;
+            }
+
+            return kernel;
+        }
+
+        function motionBlur(imageData, centerX, centerY, radius, intensity, blurRadius) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+
+            const tempData = new Uint8ClampedArray(data);
+
+            for (let py = Math.max(0, centerY - radius); py < Math.min(height, centerY + radius); py++) {
+                for (let px = Math.max(0, centerX - radius); px < Math.min(width, centerX + radius); px++) {
+                    const dist = Math.sqrt((px - centerX) ** 2 + (py - centerY) ** 2);
+                    if (dist > radius) continue;
+
+                    const idx = (py * width + px) * 4;
+                    let r = 0, g = 0, b = 0, a = 0, count = 0;
+
+                    // Motion blur in multiple directions
+                    for (let angle = 0; angle < Math.PI; angle += Math.PI / 8) {
+                        for (let i = -blurRadius; i <= blurRadius; i++) {
+                            const nx = Math.round(px + Math.cos(angle) * i);
+                            const ny = Math.round(py + Math.sin(angle) * i);
+
+                            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                const nidx = (ny * width + nx) * 4;
+                                r += tempData[nidx];
+                                g += tempData[nidx + 1];
+                                b += tempData[nidx + 2];
+                                a += tempData[nidx + 3];
+                                count++;
+                            }
+                        }
+                    }
+
+                    if (count > 0) {
+                        data[idx] = r / count;
+                        data[idx + 1] = g / count;
+                        data[idx + 2] = b / count;
+                        data[idx + 3] = a / count;
+                    }
+                }
+            }
+        }
+
+        function redrawCanvas() {
+            if (!originalImage) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(originalImage, 0, 0);
+
+            for (const area of blurAreas) {
+                const imageData = ctx.getImageData(
+                    Math.max(0, area.x - area.radius),
+                    Math.max(0, area.y - area.radius),
+                    Math.min(canvas.width - Math.max(0, area.x - area.radius), area.radius * 2),
+                    Math.min(canvas.height - Math.max(0, area.y - area.radius), area.radius * 2)
+                );
+
+                if (area.mode === 'motion') {
+                    motionBlur(imageData, area.radius, area.radius, area.radius, area.intensity, area.blurRadius);
+                } else {
+                    gaussianBlur(imageData, area.radius, area.radius, area.radius, area.intensity, area.blurRadius);
+                }
+
+                ctx.putImageData(imageData, Math.max(0, area.x - area.radius), Math.max(0, area.y - area.radius));
+            }
+        }
+
+        function undoBlur() {
+            if (history.length > 0) {
+                blurAreas = JSON.parse(history.pop());
+                redrawCanvas();
+            }
+        }
+
+        function clearCanvas() {
+            blurAreas = [];
+            history = [];
+            redrawCanvas();
+        }
+
+        function downloadImage() {
+            if (!originalImage) {
+                alert('Please upload an image first!');
+                return;
+            }
+
+            loadingIndicator.style.display = 'block';
+
+            setTimeout(() => {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/jpeg', 0.95);
+                link.download = 'blur-studio-output.jpg';
+                link.click();
+                loadingIndicator.style.display = 'none';
+            }, 500);
+        }
+    </script>
+</body>
+</html>
